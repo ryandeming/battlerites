@@ -1,0 +1,1 @@
+<img src="{{asset('images/'.$hero->name.'/abilities/'.$battlerite->hotkey.'.png')}}" class="skill-img {{strtolower($battlerite->category)}}" alt="{{$hero->name}} skill - {{$battlerite->name}}">

@@ -1,0 +1,10 @@
+.hero {
+    &:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+    .hero-img {
+        max-width: 50px;
+    }
+}

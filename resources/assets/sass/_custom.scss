@@ -1,0 +1,146 @@
+img {
+    max-width: 100%;
+}
+
+.content-block {
+    background-color: $container-bg;
+    box-shadow: 0 0 3px rgba(10,10,10,0.4);
+    border: 1px solid #333333;
+    padding: 15px;
+    margin-bottom: 10px;
+    &:after {
+        display: block;
+        clear: both;
+        content: '';
+    }
+}
+
+.navbar {
+    background: $container-bg;
+    .navbar-brand {
+        padding: 5px;
+    }
+    .nav > li > a:hover, .nav > li > a:focus {
+        background: lighten($container-bg, 2%);
+    }
+}
+.form-control, textarea  {
+    background-color: rgba(0,0,0,0.15);
+    border: 1px solid rgba(0, 0, 0, 0.20);
+    color: #999999;
+}
+.bold {
+    font-weight: bold;
+}
+.text-center {
+    text-align: center;
+}
+.hero-name {
+    text-transform: capitalize;
+}
+.well, .post {
+    background: $container-bg;
+    border: 0px solid darken($container-bg, 5%);
+    box-shadow: 0 0 3px rgba(10,10,10,0.4);
+    margin-bottom: 10px;
+    p {
+        margin: 15px 0;
+    }
+    li {
+        list-style-type: disc;
+        margin-left: 15px;
+    }
+}
+.main-content {
+    //width: 800px;
+   //max-width: 100%;
+    //margin-right: 20px;
+    //padding: 30px;
+    //float: left;
+    //background: $container-bg;
+    //box-shadow: 0 0 3px rgba(10,10,10,0.4);
+    //border: 1px solid #333333;
+
+    .page-title {
+        color: $brand-primary;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+}
+
+.skill-img {
+    width: 60px;
+    max-width: 100%;
+    border-radius: 50%;
+}
+
+.survival {
+    border: 5px solid green;
+    background-color: green;
+}
+
+.offense {
+    border: 5px solid red;
+    background-color: red;
+}
+
+.control {
+    border: 5px solid orchid;
+    background-color: orchid;
+}
+
+.mobility {
+    border: 5px solid yellow;
+    background-color: yellow;
+}
+
+.support {
+    border: 5px solid teal;
+    background-color: teal;
+}
+
+.utility {
+    border: 5px solid blue;
+    background-color: blue;
+}
+
+.mixed {
+    border: 5px solid skyblue;
+    background-color: skyblue;
+}
+
+//override bootstrap pagination colors
+.pagination > li > a,
+.pagination > li > span,
+.pagination > li.disabled > span,
+.pagination > .disabled > span:hover {
+    background-color: darken($container-bg, 2%);
+    border-color: #333333;
+    -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+}
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > li > span:focus,
+.pagination > li > span:hover {
+    background-color: darken($container-bg, 1%);
+    border-color: #333333;
+    color: lighten($brand-primary, 10%);
+}
+
+.pagination > li:nth-child(6), 
+.pagination > li:nth-child(7), 
+.pagination > li:nth-child(8), 
+.pagination > li:nth-child(9),
+.pagination > li:nth-child(11) {
+    display: none;
+}
+
+.pagination >li.active {
+    display: inline;
+}
+
+.navbar-toggle .icon-bar {
+    background: #cccccc;
+}

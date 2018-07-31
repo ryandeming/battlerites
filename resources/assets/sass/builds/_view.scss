@@ -1,0 +1,103 @@
+.build-header {
+    clear: both;
+    margin-bottom: 60px;
+    position: relative;
+
+    .build-title {
+        .page-title {
+            margin-bottom: 0;
+            line-height: 1em;
+        }
+        .score {
+            color: $brand-primary;
+            font-size: 16px;
+        }
+    }
+    .hero-img {
+        margin-right: 10px;
+    }
+    .rate {
+        position: absolute;
+        right: 0;
+        top: 8px;        
+        .buttons {
+            float: right;
+            .upvote {
+                color: lightgreen;
+                opacity: 0.5;
+                cursor: pointer;
+                &:hover, &.active {
+                    opacity: 1;
+                }
+            }
+
+            .downvote {
+                color: orangered;
+                cursor: pointer;
+                opacity: 0.5;
+
+                &:hover, &.active {
+                    opacity: 1;
+                }
+            }
+        }
+
+        &:after {
+            clear: both;
+            display: block;
+            content: '';
+        }
+    }
+}
+
+
+
+.build-row.view {
+    margin-bottom: 60px;
+    box-shadow: none;
+    .build.battlerites {
+        display: block;
+        width: 20%;
+        float:left;
+        position: relative;
+        
+        .build-img {
+            margin-bottom: 5px;
+        }
+
+        &:hover {
+            .tooltip {
+                display: block;
+                opacity: 1;
+            }
+        }
+    }
+
+    .tooltip {
+        display: none;
+        background: rgba(0,0,0,0.8);
+        color: #ffffff;
+        padding: 12px;
+        max-width: 200px;
+        right: 0;
+        top: 0;
+        cursor: pointer;
+        h3 {
+            font-weight: bold;
+        }
+    }
+
+    &:after {
+        display: block;
+        content: '';
+        clear: both;
+    }
+}
+
+.build.body {
+    h2 {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: $brand-primary;
+    }
+}

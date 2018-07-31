@@ -1,0 +1,707 @@
+<?php 
+
+use App\Hero;
+
+$heroes = Hero::all();
+if(isset($_GET['playerName'])) {
+    $playerName = $_GET['playerName'];
+}
+?>
+@extends('layouts.app')
+@section('content')
+        @if($playerName != null)
+            <?php 
+            $playerStats = getPlayerStats($playerName);
+            if($playerStats != '') {
+                $heroStats = sortHeroArray($playerStats);
+                $matches = getMatchesById($playerStats[0]['id']);
+            }
+            //echo '<pre>'.print_r(getMatchesById($playerStats[0]['id']), true).'</pre>';
+            ?>
+            @if($playerStats == null)
+                <p>Player not found</p>
+                <h2>Search</h2>
+                {!! Form::open(['action' => ['PagesController@lookup', $playerName], 'method' => 'GET']) !!}
+                    <div class="form-group">
+                        {{Form::label('playerName', 'Player Name')}}
+                        {{Form::text('playerName', '', ['class' => 'form-control', 'placeholder' => 'Player Name'])}}
+                    </div>
+                    {{Form::submit('Search', ['class' => 'btn btn-primary'])}}
+                {!! Form::close() !!}
+            @else
+                <?php
+                $rank = getPlayerRankById($playerStats[0]['id']); 
+                $highestRank = getLastSeasonRank($playerStats[0]['id']);
+                ?>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="player-stats-box content-block">
+                            <div class="left">
+                                @if($rank != null)
+                                    @if($rank['leagueId'])
+                                    <img src="{{asset('images/leagues/'.$rank['leagueId'].'.png')}}" class="league-img" alt="{{$rank['league']}} league">
+                                    @endif
+                                @endif
+                                <div class="player-info">
+                                    <h2>{{$playerName}}</h2>
+                                    @if($rank != null)
+                                        @if($rank['leagueId'])
+                                        <h3>
+                                            {{$rank['league']}} {{$rank['division']}}
+                                            <small>{{$rank['rating']}} points</small>
+                                        </h3>
+                                        @else 
+                                            <h3>In Placements</h3>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="right">
+                                    <p>
+                                        <span class="wins">{{$playerStats[0]['totalWins']}}</span> - <span class="losses">{{$playerStats[0]['totalLosses']}}</span>
+                                        <small>Wins - Losses</span>
+                                    </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if($highestRank != null)
+                <div class="row">
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <div class="content-block player-team-box">
+                            <p class="highest">LAST SEASON BEST</p>
+                            <p class="type">{{$highestRank['type']}}</p>
+                            @if(($highestRank['leagueId'] == 0) && ($highestRank['division'] == 5) && ($highestRank['rating'] == 0))
+                                <p class="no-info text-center">No Information</p>
+                            @else
+                            <img src="{{asset('images/leagues/'.$highestRank['leagueId'].'.png')}}" class="league-img" alt="{{$highestRank['leagueId']}} league">
+                            <div class="player-info">
+                                <h2>{{$highestRank['league']}} {{$highestRank['division']}}</h2>
+                                <small>{{$highestRank['rating']}} points</small>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <div class="content-block player-team-box">
+                            <p class="highest">CURRENT SEASON BEST</p>
+                            <p class="type">2V2</p>
+                            @if((($rank['2v2LeagueId'] == 0) && ($rank['2v2Division'] == 5) && ($rank['2v2Rating'] == 0)) || $rank['2v2LeagueId'] == '')
+                                <p class="text-center no-info">In Placements</p>
+                            @else
+                            <img src="{{asset('images/leagues/'.$rank['2v2LeagueId'].'.png')}}" class="league-img" alt="{{$rank['2v2LeagueId']}} league">
+                            <div class="player-info">
+                                <h2>{{$rank['2v2League']}} {{$rank['2v2Division']}}</h2>
+                                <small>{{$rank['2v2Rating']}} points</small>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <div class="content-block player-team-box">
+                            <p class="highest">CURRENT SEASON BEST</p>
+                            <p class="type">3V3</p>
+                            @if((($rank['3v3LeagueId'] == 0) && ($rank['3v3Division'] == 5) && ($rank['3v3Rating'] == 0)) || $rank['3v3LeagueId'] == '')
+                                <p class="text-center no-info">In Placements</p>
+                            @else
+                            <img src="{{asset('images/leagues/'.$rank['3v3LeagueId'].'.png')}}" class="league-img" alt="{{$rank['3v3LeagueId']}} league">
+                            <div class="player-info">
+                                <h2>{{$rank['3v3League']}} {{$rank['3v3Division']}}</h2>
+                                <small>{{$rank['3v3Rating']}} points</small>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <div class="row">
+                @foreach($heroStats as $stats)
+                    @if(array_key_exists('hero', $stats))
+                        <?php //$heroName = str_replace(" ", "-", $stats['hero']) 
+                        $heroName = $stats['hero']; ?>
+                        <div class="col-xs-6 col-sm-4 col-md-3 text-center">
+                            <div class="content-block hero-stats-box">
+                                <img src="{{asset('images/'.$heroName.'/icon.png')}}" class="hero-img" alt="{{$heroName}}">
+                            <h3 class="hero-name">{{$heroName}}</h3>
+                            <p>
+                                <span class="wins">{{$stats['wins']}}</span> - <span class="losses">{{$stats['losses']}}</span>
+                                <small>wins - losses</small>
+                            </p>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+                </div>
+            @endif
+        @else
+        <h2>Search</h2>
+        {!! Form::open(['action' => ['PagesController@lookup', $playerName], 'method' => 'GET']) !!}
+            <div class="form-group">
+                {{Form::label('playerName', 'Player Name')}}
+                {{Form::text('playerName', '', ['class' => 'form-control', 'placeholder' => 'Player Name'])}}
+            </div>
+            {{Form::submit('Search', ['class' => 'btn btn-primary'])}}
+        {!! Form::close() !!}
+        @endif
+@endsection
+
+@section('sidebar')
+    @if($playerStats != null && $matches != null)
+        <div class="sidebar-item">
+            <h3 class="bold mb-10">Recent Matches</h3>
+            <div class="match-history">
+                @foreach($matches as $match)
+                <div class="match">
+                    <img src="{{asset('images/'.$match['hero'].'/icon.png')}}" class="hero-img" alt="{{$heroName}}">
+                    <p class="match-type">{{$match['type']}}</p>
+                    @if($match['win'] == 'true')
+                        <p class="result win">Win</p>
+                    @else
+                        <p class="result loss">Loss</p>
+                    @endif
+                    <p>as {{$match['hero']}}</p>
+                    <p class="time">{{date("m-d-Y", strtotime($match['time']))}}</p>
+                    <p class="expand">Click to expand</p>
+                    <div class="match-stats-box" style="display: none; clear:both;">
+                        <p>Damage Done: <span class="bold lightgreen">{{$match['damageDone']}}</span> <span class="right">Damage Received: <span class="bold orangered">{{$match['damageReceived']}}</span></span></p>
+                        <p>Healing Done: <span class="bold lightgreen">{{$match['healingDone']}}</span> <span class="right">Healing Received: <span class="bold orangered">{{$match['healingReceived']}}</span></span></p>
+                        <p>Disables Done: <span class="bold lightgreen">{{$match['disablesDone']}}</span> <span class="right">Disables Received: <span class="bold orangered">{{$match['disablesReceived']}}</span></span></p>
+                        <p>Kills: <span class="bold lightgreen">{{$match['kills']}}</span> <span class="right">Deaths: <span class="bold orangered">{{$match['deaths']}}</span></span></p>
+                        <p class="score bold text-center">Total Score: <span class="lightgreen">{{$match['score']}}</span></p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        <!-- <div class="sidebar-item">
+            {{$playerStats[0]['2v2Wins']}}
+            {{$playerStats[0]['2v2Losses']}}
+        </div>
+        <div class="sidebar-item">
+                {{$playerStats[0]['3v3Wins']}}
+                {{$playerStats[0]['3v3Losses']}}
+        </div> -->
+     @endif
+@endsection
+
+
+<?php 
+function getPlayerStats($playerName) {
+        $json_url = "https://api.dc01.gamelockerapp.com/shards/global/players?filter[playerNames]=".$playerName;
+        $ch      = curl_init( $json_url );
+        $options = array(
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => array( "Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxZDQ4YzEyMC0wMzA3LTAxMzYtZDVmNS0wYTU4NjQ2MTA1MDgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTIwMjk3NzgzLCJwdWIiOiJzdHVubG9jay1zdHVkaW9zIiwidGl0bGUiOiJiYXR0bGVyaXRlIiwiYXBwIjoidGJkLWM0ZmI4OTg2LTc2YjgtNGZhMy05NGY0LTA1MmMzMjViYzBhMyIsInNjb3BlIjoiY29tbXVuaXR5IiwibGltaXQiOjEwfQ.JsoSNx4I0LwXJZgnoH-xGjgbKBYW5tIEMGY9WtG_JRI", "Accept: application/vnd.api+json" ),
+        );
+        curl_setopt_array( $ch, $options );
+    
+        $result = curl_exec( $ch );
+        if($result == null) {
+            return '';
+        }
+        $result = json_decode($result, true);
+        // Notes
+        // 2 = total wins, 3 = total losses, 16 = rank3v3wins, 17 = rank3v3losses, 14 = rank2v2wins, 15 = rank2v2losses
+        
+        if(multiKeyExists('id', $result)) {
+        // Get player ID for team lookup
+        $player[0]['id'] = $result['data'][0]['id'];
+        $player[0]['totalWins'] = $result['data'][0]['attributes']['stats']['2'];
+        $player[0]['totalLosses'] = $result['data'][0]['attributes']['stats']['3'];
+        $player[0]['3v3Wins'] = $result['data'][0]['attributes']['stats']['16'];
+        $player[0]['3v3Losses'] = $result['data'][0]['attributes']['stats']['17'];
+        $player[0]['2v2Wins'] = $result['data'][0]['attributes']['stats']['14'];
+        $player[0]['2v2Losses'] = $result['data'][0]['attributes']['stats']['15'];
+        
+        // Hero Names and ID's for loop
+        $heroArray[0]['name'] = 'lucie';
+        $heroArray[0]['id'] = '001';
+        $heroArray[1]['name'] = 'sirius';
+        $heroArray[1]['id'] = '002';
+        $heroArray[2]['name'] = 'iva';
+        $heroArray[2]['id'] = '003';
+        $heroArray[3]['name'] = 'jade';
+        $heroArray[3]['id'] = '004';
+        $heroArray[4]['name'] = 'ruh kaan';
+        $heroArray[4]['id'] = '005';
+        $heroArray[5]['name'] = 'oldur';
+        $heroArray[5]['id'] = '006';
+        $heroArray[6]['name'] = 'ashka';
+        $heroArray[6]['id'] = '007';
+        $heroArray[7]['name'] = 'varesh';
+        $heroArray[7]['id'] = '008';
+        $heroArray[8]['name'] = 'pearl';
+        $heroArray[8]['id'] = '009';
+        $heroArray[9]['name'] = 'taya';
+        $heroArray[9]['id'] = '010';
+        $heroArray[10]['name'] = 'poloma';
+        $heroArray[10]['id'] = '011';
+        $heroArray[11]['name'] = 'croak';
+        $heroArray[11]['id'] = '012';
+        $heroArray[12]['name'] = 'freya';
+        $heroArray[12]['id'] = '013';
+        $heroArray[13]['name'] = 'jumong';
+        $heroArray[13]['id'] = '014';
+        $heroArray[14]['name'] = 'shifu';
+        $heroArray[14]['id'] = '015';
+        $heroArray[15]['name'] = 'ezmo';
+        $heroArray[15]['id'] = '016';
+        $heroArray[16]['name'] = 'bakko';
+        $heroArray[16]['id'] = '017';
+        $heroArray[17]['name'] = 'rook';
+        $heroArray[17]['id'] = '018';
+        $heroArray[18]['name'] = 'pestilus';
+        $heroArray[18]['id'] = '019';
+        $heroArray[19]['name'] = 'destiny';
+        $heroArray[19]['id'] = '020';
+        $heroArray[20]['name'] = 'raigon';
+        $heroArray[20]['id'] = '021';
+        $heroArray[21]['name'] = 'blossom';
+        $heroArray[21]['id'] = '022';
+        $heroArray[22]['name'] = 'thorn';
+        $heroArray[22]['id'] = '025';
+        $heroArray[23]['name'] = 'zander';
+        $heroArray[23]['id'] = '035';
+        $heroArray[24]['name'] = 'alysia';
+        $heroArray[24]['id'] = '041';
+        $heroArray[25]['name'] = 'jamila';
+        $heroArray[25]['id'] = '043';
+            
+        $i=1;
+        foreach($heroArray as $heroData) {
+            $wins = '12'.$heroData['id'];
+            $losses = '13'.$heroData['id'];
+            $heroName = $heroData['name'];
+            $player[$i]['hero'] = $heroName;
+            if(multiKeyExists($wins, $result)) {
+            $player[$i]['wins'] = $result['data'][0]['attributes']['stats'][$wins];
+            } else { $player[$i]['wins'] = 0; }
+            if(multiKeyExists($losses, $result)) {
+            $player[$i]['losses'] = $result['data'][0]['attributes']['stats'][$losses];
+            } else { $player[$i]['losses'] = 0; }
+            $i++;
+        }
+        // Get and Set Character wins and losses
+
+    return $player;
+    } else {
+        return null;
+    }
+}
+
+function getPlayerRankById($playerId) {
+    $json_url = "https://api.dc01.gamelockerapp.com/shards/global/teams?tag[playerIds]=".$playerId."&tag[season]=7";
+    $ch      = curl_init( $json_url );
+    $options = array(
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => array( "Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxZDQ4YzEyMC0wMzA3LTAxMzYtZDVmNS0wYTU4NjQ2MTA1MDgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTIwMjk3NzgzLCJwdWIiOiJzdHVubG9jay1zdHVkaW9zIiwidGl0bGUiOiJiYXR0bGVyaXRlIiwiYXBwIjoidGJkLWM0ZmI4OTg2LTc2YjgtNGZhMy05NGY0LTA1MmMzMjViYzBhMyIsInNjb3BlIjoiY29tbXVuaXR5IiwibGltaXQiOjEwfQ.JsoSNx4I0LwXJZgnoH-xGjgbKBYW5tIEMGY9WtG_JRI", "Accept: application/vnd.api+json" ),
+    );
+    curl_setopt_array( $ch, $options );
+
+    $result = curl_exec( $ch );
+    if($result == null) {
+        return '';
+    }
+    $results = json_decode($result, true);
+    //echo '<pre>'.print_r($results, true).'</pre>';
+    $rank = array();
+    $rank['2v2LeagueId'] = $rank['2v2Rating'] = $rank['2v2Division'] = $rank['3v3LeagueId'] = $rank['3v3Rating'] = $rank['3v3Division'] = 0;    
+        //check for ranking information
+    if(multiKeyExists('league', $results)) {
+        
+        //check if user has teams
+        if(count($results['data']) > 1) {
+            //loop through teams
+            foreach($results['data'] as $result) {
+                //get solo ranking
+                if(count($result['attributes']['stats']['members']) == 1) {
+                    if($result['attributes']['stats']['placementGamesLeft'] > 0) {
+                        $rank['league'] = $rank['leagueId'] = $rank['division'] = $rank['rating'] = '';
+
+                    } else {
+                        $rank['league'] = getRankLeague($result['attributes']['stats']['league']);    
+                        $rank['leagueId'] = $result['attributes']['stats']['league'];
+                        $rank['division'] = $result['attributes']['stats']['division'];
+                        $rank['rating'] = $result['attributes']['stats']['divisionRating'];
+                    }
+                }
+
+                //get 2v2 ranking
+                if(count($result['attributes']['stats']['members']) == 2) {
+                    if($rank['2v2LeagueId'] <= $result['attributes']['stats']['league']) {
+                        if($rank['2v2Division'] <= $result['attributes']['stats']['division']) {
+                            if($rank['2v2Rating'] <= $result['attributes']['stats']['divisionRating']) {
+                                if($result['attributes']['stats']['placementGamesLeft'] > 0) {
+                                    $rank['2v2League'] = "In Placements";
+                                    $rank['2v2LeagueId'] = $rank['2v2Division'] = $rank['2v2Rating'] = '';
+                                } else {
+                                $rank['2v2Name'] = $result['attributes']['name'];
+                                $rank['2v2League'] = getRankLeague($result['attributes']['stats']['league']);    
+                                $rank['2v2LeagueId'] = $result['attributes']['stats']['league'];
+                                $rank['2v2Division'] = $result['attributes']['stats']['division'];
+                                $rank['2v2Rating'] = $result['attributes']['stats']['divisionRating'];
+                                }
+                            }
+                        }
+                    }
+                }
+                // get 3v3 ranking
+                if(count($result['attributes']['stats']['members']) == 3) {
+                    if($rank['3v3LeagueId'] <= $result['attributes']['stats']['league']) {
+                        if($rank['3v3Division'] <= $result['attributes']['stats']['division']) {
+                            if($rank['3v3Rating'] <= $result['attributes']['stats']['divisionRating']) {
+                                if($result['attributes']['stats']['placementGamesLeft'] > 0) {
+                                    $rank['3v3League'] = "In Placements";
+                                    $rank['3v3LeagueId'] = $rank['3v3Division'] = $rank['3v3Rating'] = '';
+                                } else {
+                                $rank['3v3Name'] = $result['attributes']['name'];
+                                $rank['3v3League'] = getRankLeague($result['attributes']['stats']['league']);    
+                                $rank['3v3LeagueId'] = $result['attributes']['stats']['league'];
+                                $rank['3v3Division'] = $result['attributes']['stats']['division'];
+                                $rank['3v3Rating'] = $result['attributes']['stats']['divisionRating'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return $rank;
+        // if user only has 1 team, get that rank and display it
+        } else {
+            $rank['league'] = getRankLeague($results['data'][0]['attributes']['stats']['league']);
+            $rank['leagueId'] = $results['data'][0]['attributes']['stats']['league'];
+            $rank['division'] = $results['data'][0]['attributes']['stats']['division'];
+            $rank['rating'] = $results['data'][0]['attributes']['stats']['divisionRating'];
+            return $rank;
+        }
+    }
+}
+
+function getLastSeasonRank($playerId) {
+    $json_url = "https://api.dc01.gamelockerapp.com/shards/global/teams?tag[playerIds]=".$playerId."&tag[season]=6";
+    $ch      = curl_init( $json_url );
+    $options = array(
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => array( "Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxZDQ4YzEyMC0wMzA3LTAxMzYtZDVmNS0wYTU4NjQ2MTA1MDgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTIwMjk3NzgzLCJwdWIiOiJzdHVubG9jay1zdHVkaW9zIiwidGl0bGUiOiJiYXR0bGVyaXRlIiwiYXBwIjoidGJkLWM0ZmI4OTg2LTc2YjgtNGZhMy05NGY0LTA1MmMzMjViYzBhMyIsInNjb3BlIjoiY29tbXVuaXR5IiwibGltaXQiOjEwfQ.JsoSNx4I0LwXJZgnoH-xGjgbKBYW5tIEMGY9WtG_JRI", "Accept: application/vnd.api+json" ),
+    );
+    curl_setopt_array( $ch, $options );
+
+    $result = curl_exec( $ch );
+    if($result == null) {
+        return '';
+    }
+    $results = json_decode($result, true);
+    //echo '<pre>'.print_r($results, true).'</pre>';
+    $rank = array();
+    $rank['2v2LeagueId'] = $rank['2v2Rating'] = $rank['2v2Division'] = $rank['3v3LeagueId'] = $rank['3v3Rating'] = $rank['3v3Division'] = 0;    
+        //check for ranking information
+    if(multiKeyExists('league', $results)) {
+        
+        //check if user has teams
+        if(count($results['data']) > 1) {
+            //loop through teams
+            foreach($results['data'] as $result) {
+                //get solo ranking
+                if(count($result['attributes']['stats']['members']) == 1) {
+                    $rank['league'] = getRankLeague($result['attributes']['stats']['topLeague']);    
+                    $rank['leagueId'] = $result['attributes']['stats']['topLeague'];
+                    $rank['division'] = $result['attributes']['stats']['topDivision'];
+                    $rank['rating'] = $result['attributes']['stats']['topDivisionRating'];
+                }
+
+                //get 2v2 ranking
+                if(count($result['attributes']['stats']['members']) == 2) {
+                    if($rank['2v2LeagueId'] <= $result['attributes']['stats']['topLeague']) {
+                        if($rank['2v2Division'] <= $result['attributes']['stats']['topDivision']) {
+                            if($rank['2v2Rating'] <= $result['attributes']['stats']['topDivisionRating'])
+                                $rank['2v2Name'] = $result['attributes']['name'];
+                                $rank['2v2League'] = getRankLeague($result['attributes']['stats']['topLeague']);    
+                                $rank['2v2LeagueId'] = $result['attributes']['stats']['topLeague'];
+                                $rank['2v2Division'] = $result['attributes']['stats']['topDivision'];
+                                $rank['2v2Rating'] = $result['attributes']['stats']['topDivisionRating'];
+                        }
+                    }
+                }
+                // get 3v3 ranking
+                if(count($result['attributes']['stats']['members']) == 3) {
+                    if($rank['3v3LeagueId'] <= $result['attributes']['stats']['topLeague']) {
+                        if($rank['3v3Division'] <= $result['attributes']['stats']['topDivision']) {
+                            if($rank['3v3Rating'] <= $result['attributes']['stats']['topDivisionRating'])
+                                $rank['3v3Name'] = $result['attributes']['name'];
+                                $rank['3v3League'] = getRankLeague($result['attributes']['stats']['topLeague']);    
+                                $rank['3v3LeagueId'] = $result['attributes']['stats']['topLeague'];
+                                $rank['3v3Division'] = $result['attributes']['stats']['topDivision'];
+                                $rank['3v3Rating'] = $result['attributes']['stats']['topDivisionRating'];
+                        }
+                    }
+                }
+            }
+
+            //get highest
+            if(($rank['3v3LeagueId'] >= $rank['2v2LeagueId']) && ($rank['3v3LeagueId'] >= $rank['leagueId'])) {
+                if(($rank['3v3Division'] >= $rank['2v2Division']) && ($rank['3v3Division'] >= $rank['division'])) {
+                    $highestRank['league'] = $rank['3v3League'];    
+                    $highestRank['leagueId'] = $rank['3v3LeagueId'];
+                    $highestRank['division'] = $rank['3v3Division'];
+                    $highestRank['rating'] = $rank['3v3Rating'];
+                    $highestRank['type'] = "3V3 TEAM";
+                }
+            } else if(($rank['2v2LeagueId'] >= $rank['3v3LeagueId']) && ($rank['2v2LeagueId'] >= $rank['leagueId'])) {
+                if(($rank['2v2Division'] >= $rank['3v3Division']) && ($rank['2v2Division'] >= $rank['division'])) {
+                    $highestRank['league'] = $rank['2v2League'];    
+                    $highestRank['leagueId'] = $rank['2v2LeagueId'];
+                    $highestRank['division'] = $rank['2v2Division'];
+                    $highestRank['rating'] = $rank['2v2Rating'];
+                    $highestRank['type'] = "2V2 TEAM";
+                }
+            } else {
+                $highestRank['league'] = $rank['league'];    
+                $highestRank['leagueId'] = $rank['leagueId'];
+                $highestRank['division'] = $rank['division'];
+                $highestRank['rating'] = $rank['rating'];
+                $highestRank['type'] = "SOLO";
+            }
+            return $highestRank;
+        // if user only has 1 team, get that rank and display it
+        } else {
+            $rank['highest'] = '';
+            $rank['league'] = getRankLeague($results['data'][0]['attributes']['stats']['league']);
+            $rank['leagueId'] = $results['data'][0]['attributes']['stats']['league'];
+            $rank['division'] = $results['data'][0]['attributes']['stats']['division'];
+            $rank['rating'] = $results['data'][0]['attributes']['stats']['divisionRating'];
+            return $rank;
+        }
+    } else {
+        return '';
+    }
+}
+
+function getMatchesById($playerId) {
+        $json_url = "https://api.dc01.gamelockerapp.com/shards/global/matches?&sort=-createdAt&sort=desc&page[limit]=5&filter[playerIds]=".$playerId;
+        //$json_url = "https://api.dc01.gamelockerapp.com/shards/global/matches/3890417D995C43948FFB4AD8431E1E5E";
+        //$json_url = " https://cdn.gamelockerapp.com/stunlock-studios-battlerite/global/2018/02/15/20/51/f4aefb02-1291-11e8-9233-0a5864610581-telemetry.json";
+        $ch      = curl_init( $json_url );
+        $options = array(
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => array( "Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxZDQ4YzEyMC0wMzA3LTAxMzYtZDVmNS0wYTU4NjQ2MTA1MDgiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTIwMjk3NzgzLCJwdWIiOiJzdHVubG9jay1zdHVkaW9zIiwidGl0bGUiOiJiYXR0bGVyaXRlIiwiYXBwIjoidGJkLWM0ZmI4OTg2LTc2YjgtNGZhMy05NGY0LTA1MmMzMjViYzBhMyIsInNjb3BlIjoiY29tbXVuaXR5IiwibGltaXQiOjEwfQ.JsoSNx4I0LwXJZgnoH-xGjgbKBYW5tIEMGY9WtG_JRI", "Accept: application/vnd.api+json" ),
+        );
+        curl_setopt_array( $ch, $options );
+    
+        $result = curl_exec( $ch );
+        if($result == null) {
+            return '';
+        }
+        //return print_r($result);
+        $results = json_decode($result, true);
+        //$result = json_encode($result, JSON_PRETTY_PRINT);
+        //$datas = $result['included'];
+        $matches = array();
+        $matches[0]['team1'] = 0;
+        $matches[0]['team2'] = 0;
+        $i = 0;
+
+        // Actor IDs
+        $heroArray[0]['name'] = 'lucie';
+        $heroArray[0]['id'] = '467463015';
+        $heroArray[1]['name'] = 'sirius';
+        $heroArray[1]['id'] = '259914044';
+        $heroArray[2]['name'] = 'iva';
+        $heroArray[2]['id'] = '842211418';
+        $heroArray[3]['name'] = 'jade';
+        $heroArray[3]['id'] = '65687534';
+        $heroArray[4]['name'] = 'ruh kaan';
+        $heroArray[4]['id'] = '550061327';
+        $heroArray[5]['name'] = 'oldur';
+        $heroArray[5]['id'] = '1908945514';
+        $heroArray[6]['name'] = 'ashka';
+        $heroArray[6]['id'] = '1';
+        $heroArray[7]['name'] = 'varesh';
+        $heroArray[7]['id'] = '369797039';
+        $heroArray[8]['name'] = 'pearl';
+        $heroArray[8]['id'] = '44962063';
+        $heroArray[9]['name'] = 'taya';
+        $heroArray[9]['id'] = '154382530';
+        $heroArray[10]['name'] = 'poloma';
+        $heroArray[10]['id'] = '1134478706';
+        $heroArray[11]['name'] = 'croak';
+        $heroArray[11]['id'] = '1208445212';
+        $heroArray[12]['name'] = 'freya';
+        $heroArray[12]['id'] = '1606711539';
+        $heroArray[13]['name'] = 'jumong';
+        $heroArray[13]['id'] = '39373466';
+        $heroArray[14]['name'] = 'shifu';
+        $heroArray[14]['id'] = '763360732';
+        $heroArray[15]['name'] = 'ezmo';
+        $heroArray[15]['id'] = '1377055301';
+        $heroArray[16]['name'] = 'bakko';
+        $heroArray[16]['id'] = '1422481252';
+        $heroArray[17]['name'] = 'rook';
+        $heroArray[17]['id'] = '1318732017';
+        $heroArray[18]['name'] = 'pestilus';
+        $heroArray[18]['id'] = '1649551456';
+        $heroArray[19]['name'] = 'destiny';
+        $heroArray[19]['id'] = '870711570';
+        $heroArray[20]['name'] = 'raigon';
+        $heroArray[20]['id'] = '1749055646';
+        $heroArray[21]['name'] = 'blossom';
+        $heroArray[21]['id'] = '543520739';
+        $heroArray[22]['name'] = 'thorn';
+        $heroArray[22]['id'] = '1463164578';
+        $heroArray[23]['name'] = 'zander';
+        $heroArray[23]['id'] = '1496688063';
+        $heroArray[24]['name'] = 'alysia';
+        $heroArray[24]['id'] = '613085868';
+        $heroArray[25]['name'] = 'jamila';
+        $heroArray[25]['id'] = '1661996559';
+
+        if(multiKeyExists('data', $results)) {
+            foreach($results['data'] as $result) {
+                
+                if($result['type'] == 'match') {
+                    $matches[$i]['time'] = $result['attributes']['createdAt'];
+                    $matches[$i]['team1id'] = $result['relationships']['rosters']['data'][0]['id'];
+                    $matches[$i]['team2id'] = $result['relationships']['rosters']['data'][1]['id'];
+                    $matches[$i]['type'] = $result['attributes']['stats']['type'];
+                    $j=0;
+                    foreach($result['relationships']['rounds']['data'] as $round) {
+                        $matches[$i]['rounds'][$j]['id'] = $round['id'];
+                        $j++;
+                    }
+                }
+                $i++;
+            }
+            $rosterCounter = 0;
+            foreach($results['included'] as $result) {          
+                if($result['type'] == 'round') {
+                    $i=0;
+                    foreach($matches as $match) {
+                        $j=0;
+                        foreach($match['rounds'] as $round) {
+                            if($round['id'] == $result['id']) {
+                                $matches[$i]['rounds'][$j]['winner'] = $result['attributes']['stats']['winningTeam'];
+                            }
+                            $j++;
+                        }
+                        $i++;
+                    }
+                }
+            }
+            foreach($results['included'] as $result) {
+                if($result['type'] == 'participant') {
+                    if($result['relationships']['player']['data']['id'] == $playerId) {
+                        $rosterIds[$rosterCounter]['id'] = $result['id'];
+                        foreach($heroArray as $hero) {
+                            if($hero['id'] == $result['attributes']['actor']) {
+                                $rosterIds[$rosterCounter]['hero'] = $hero['name'];
+                            }
+                        }
+                        $rosterIds[$rosterCounter]['score'] = $result['attributes']['stats']['score'];
+                        $rosterIds[$rosterCounter]['healingDone'] = $result['attributes']['stats']['healingDone'];
+                        $rosterIds[$rosterCounter]['healingReceived'] = $result['attributes']['stats']['healingReceived'];
+                        $rosterIds[$rosterCounter]['damageDone'] = $result['attributes']['stats']['damageDone'];
+                        $rosterIds[$rosterCounter]['damageReceived'] = $result['attributes']['stats']['damageReceived'];
+                        $rosterIds[$rosterCounter]['disablesDone'] = $result['attributes']['stats']['disablesDone'];
+                        $rosterIds[$rosterCounter]['disablesReceived'] = $result['attributes']['stats']['disablesReceived'];
+                        $rosterIds[$rosterCounter]['kills'] = $result['attributes']['stats']['kills'];
+                        $rosterIds[$rosterCounter]['deaths'] = $result['attributes']['stats']['deaths'];
+                        $rosterCounter++;
+                    }
+                }
+            }
+            foreach($results['included'] as $result) {
+                if($result['type'] == 'roster') {
+                    $x=0;
+                    foreach($matches as $match) {
+                        if(($match['team1id'] == $result['id']) || ($match['team2id'] == $result['id'])) {
+                            foreach($rosterIds as $player) {
+                                foreach($result['relationships']['participants']['data'] as $stupid) {
+                                    if($player['id'] == $stupid['id']) {
+                                        $matches[$x]['win'] = $result['attributes']['won'];
+                                        $matches[$x]['hero'] = $player['hero'];
+                                        $matches[$x]['score'] = $player['score'];
+                                        $matches[$x]['healingDone'] = $player['healingDone'];
+                                        $matches[$x]['healingReceived'] = $player['healingReceived'];
+                                        $matches[$x]['damageDone'] = $player['damageDone'];
+                                        $matches[$x]['damageReceived'] = $player['damageReceived'];
+                                        $matches[$x]['disablesDone'] = $player['disablesDone'];
+                                        $matches[$x]['disablesReceived'] = $player['disablesReceived'];
+                                        $matches[$x]['kills'] = $player['kills'];
+                                        $matches[$x]['deaths'] = $player['deaths'];
+                                    }
+                                }
+                            }
+                        }
+                        $x++;
+                    }
+                }
+            }
+            return $matches;
+        }
+        return '';
+}
+
+function multiKeyExists($key, array $arr) {
+    // is in base array?
+    if (array_key_exists($key, $arr)) {
+        return true;
+    }
+
+    // check arrays contained in this array
+    foreach ($arr as $element) {
+        if (is_array($element)) {
+            if (multiKeyExists($key, $element)) {
+                return true;
+            }
+        }
+
+    }
+
+    return false;
+}
+
+function sortHeroArray(array $arr) {
+    $i=0;
+    foreach($arr as $ar) {
+        if(array_key_exists('wins', $ar)) {
+            $sort[$i]['wins'] = $ar['wins'];
+            $sort[$i]['losses'] = $ar['losses'];
+            $sort[$i]['hero'] = $ar['hero'];
+            $i++;
+        } 
+    }
+    usort($sort, function($a, $b) {
+        return $b['wins'] - $a['wins'];
+    });
+    return $sort;
+}
+
+function getRankLeague($leagueId) {
+    switch($leagueId) {
+        case 0:
+            return "Copper";
+            break;
+        case 1:
+            return "Silver";
+            break;
+        case 2:
+            return "Gold";
+            break;
+        case 3:
+            return "Platinum";
+            break;
+        case 4:
+            return "Diamond";
+            break;
+        case 5:
+            return "Champion";
+            break;
+        case 6:
+            return "Grand Champion";
+            break;
+    }
+}
+?>

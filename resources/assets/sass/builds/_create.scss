@@ -1,0 +1,51 @@
+.hero-img {
+    float: left;
+    width: 64px;
+    margin: 0 5px 5px 0;
+    img {
+        max-width: 100%;
+    }
+}
+
+.form-group.battlerites {
+    position: relative;
+    width: fit-content;
+
+    .m1, .m2, .q, .e, .f, .r, .space {
+        float: left;
+        margin-right: 5px;
+    }
+    .tooltip {
+        display: none;
+        background: rgba(0,0,0,0.6);
+        color: #ffffff;
+        padding: 12px;
+        max-width: 200px;
+        right: -230px;
+        top: 0;
+        h3 {
+            font-weight: bold;
+        }
+    }
+    label:hover {
+        .tooltip {
+        display: block;
+        opacity: 1;
+        }
+    }
+
+    input[type=checkbox] {
+        display: none;
+    }
+    input[type=checkbox]:checked + label img {
+        opacity: 1;
+    }
+    input[type=checkbox] + label img {
+        transition: opacity 0.25s;
+        opacity: 0.6;
+        cursor: pointer;
+        &:hover {
+            opacity: 1;
+        }
+    }
+}

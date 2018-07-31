@@ -1,0 +1,201 @@
+.player-stats-box {
+    min-height: 140px;
+    
+    .league-img {
+        float: left;
+    }
+
+    .player-info {
+        float: left;
+        margin-left: 15px;
+        margin-top: 20px;
+        h2 {
+            font-weight: bold;
+            color: $brand-primary;
+            font-size: 19px;
+        }
+        small {
+            font-size: 80%;
+            display: block;
+        }
+    }
+    &:after {
+        display: block;
+        content: '';
+        clear: both;
+    }
+
+    .right {
+        float: right;
+        position: relative;
+        top: 30px;
+        text-align: center;
+        p {
+            font-size: 17px;
+            .wins {
+                color: lightgreen;
+                opacity: 0.7;
+            }
+            .losses {
+                color: orangered;
+                opacity: 0.7;
+            }
+            small {
+                font-size: 70%;
+                display: block;
+            }
+        }
+    }
+}
+
+.player-team-box {
+    text-align: center;
+    position: relative;
+    padding-top: 25px;
+    min-height: 205px;
+    .type {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        opacity: 0.7;
+        font-size: 80%;
+    }
+    .highest {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        opacity: 0.7;
+        font-size: 80%;
+    }
+    .no-info {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .league-img {
+        margin: 0 auto;
+    }
+    .player-info {
+        margin: 10px auto 0 auto;
+        text-align: center;
+        h2 {
+            font-weight: bold;
+            color: $brand-primary;
+        }
+        small {
+            font-size: 80%;
+            display: block;
+        }
+    }
+}
+
+.hero-stats-box {
+    h3 {
+        color: $brand-primary;
+        font-weight: bold;
+    }
+    .wins {
+        color: lightgreen;
+        opacity: 0.7;
+    }
+    .losses {
+        color: orangered;
+        opacity: 0.7;
+    }
+    .hero-img {
+        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        float: none;
+        display: block;
+        margin: 0 auto 10px auto;
+    }
+    small {
+        font-size: 75%;
+        display: block;
+        margin-top: -3px;
+    }
+}
+
+.match-history {
+    -webkit-box-shadow: 0 0 3px rgba(10, 10, 10, 0.4);
+    box-shadow: 0 0 3px rgba(10, 10, 10, 0.4);
+    border: 1px solid #333333;
+    .match {
+        position: relative;
+        -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+        &:nth-child(2n+1) {
+            background: darken($container-bg, 2%);
+        }
+        .hero-img {
+            margin: 0 10px 0 0;
+        }
+        .match-type {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 80%;
+            opacity: 0.8;
+        }
+        .time {
+            opacity: 0.8;
+            position: absolute;
+            top: 26px;
+            right: 8px;
+            font-size: 80%;
+        }
+        .expand {
+            opacity: 0.7;
+            position: absolute;
+            top: 44px;
+            right: 8px;
+            font-size: 80%;
+            color: $brand-primary;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        &:hover .expand {
+            opacity: 1;
+        }
+        .result {
+            position: relative;
+            top: 8px;
+            font-weight: bold;
+            margin-bottom: 7px; 
+            &.win {
+                color: lightgreen;
+                opacity: 0.7;
+            }
+            &.loss {
+                color: orangered;
+                opacity: 0.7;
+            }
+        }
+        &:after {
+            display: block;
+            content: '';
+            clear: both;
+        }
+        .match-stats-box {
+            padding: 5px 10px;
+
+            .right {
+                float: right;
+            }
+            .lightgreen {
+                color: lightgreen;
+                opacity: 0.7;
+            }
+            .orangered {
+                color: orangered;
+                opacity: 0.7;
+            }
+            .score {
+                font-size: 1.2em;
+            }
+        }
+    }
+
+}
